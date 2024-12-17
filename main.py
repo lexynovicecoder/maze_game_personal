@@ -8,6 +8,9 @@ WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 MAZE = scale_image(pygame.image.load("mazes/stone_maze1.png"),1.7)
 DEF_CHAR = scale_image(pygame.image.load("def_char/da_idle1.png"),0.5)
 
+IDLE_FRAMES = [scale_image(pygame.image.load(f"def_char/da_idle{i}.png"), 0.5) for i in range(1, 5)]
+
+
 run = True
 clock = pygame.time.Clock()
 
@@ -30,13 +33,20 @@ class Character(Sprites):
 
     def draw(self, win):
         win.blit(self.IMG, (self.x, self.y))
+    def walk_down(self, moving):
+        if moving:
+            if self.velocity_y <= self.max_vel:
+                self.velocity_y += self.acceleration
+            else:
+                self.velocity_y = self.max_vel
+            self.y += self.velocity_y
 
-    def walk_down(self):
-        self.velocity_y = min(self.velocity_y + self.acceleration, self.max_vel)
-        self.y += self.velocity_y
 
 
-character = Character(6,2)
+
+
+
+character = Character(6,0.5)
 
 while run:
     clock.tick(60)
@@ -50,9 +60,7 @@ while run:
     WIN.blit(GROUND,(0, 0))
     WIN.blit(MAZE,(130, 130))
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_DOWN]:  # Check if the down arrow key is pressed
-        character.walk_down()
-
+    character.walk_down(keys[pygame.K_DOWN])
     character.draw(WIN)
 
 
