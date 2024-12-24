@@ -30,48 +30,64 @@ class Character(Sprites):
     def __init__(self, max_vel, acceleration):
         super().__init__(max_vel, acceleration)
         self.image_folder = DEF_CHAR
-        self.frame_count = 5
         self.frames = []
         self.current_frame = 1
-        self.frame_delay = 100
+        self.frame_delay = 200
         self.last_update = pygame.time.get_ticks()
         self.is_moving = False
 
-        for i in range(1, self.frame_count):
-            frame_path = os.path.join(self.image_folder, f"da_idle{i}.png")
-            frame = scale_image(pygame.image.load(frame_path),0.5)
-            self.frames.append(frame)
+
 
     def draw(self, win):
-        current_img = self.frames[self.current_frame]
+        if self.is_moving is False:
+            current_img = self.frames[self.current_frame]
+            win.blit(current_img,(self.x,self.y))
 
-        # Center the frame on the character's position
-        frame_rect = current_img.get_rect(center=(self.x, self.y))
 
-        # Blit the current frame
-        win.blit(current_img, frame_rect.topleft)
-    def walk_down(self, moving):
-        if moving:
+
+    def navigation(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_DOWN]:
             self.is_moving = True
+            frame_count = 9
+            for i in range(1, frame_count):
+                frame_path = os.path.join(self.image_folder, f"da_walk{i}.png")
+                frame = scale_image(pygame.image.load(frame_path), 0.5)
+                self.frames.append(frame)
+
             if self.velocity_y <= self.max_vel:
                 self.velocity_y += self.acceleration
             else:
                 self.velocity_y = self.max_vel
             self.y += self.velocity_y
+            current_image = self.frames[self.current_frame]
+            self.current_frame += 1
+            WIN.blit(current_image,(self.x,self.y))
+
         else:
             self.is_moving = False
 
-    def update_animation(self):
+    def animation(self):
         if self.is_moving is False:
+            frame_count = 4
+            for i in range(1,frame_count):
+                frame_path = os.path.join(self.image_folder, f"da_idle{i}.png")
+                frame = scale_image(pygame.image.load(frame_path), 0.5)
+                self.frames.append(frame)
             now = pygame.time.get_ticks()
             if now - self.last_update > self.frame_delay:
                 self.current_frame = (self.current_frame + 1) % len(self.frames)  # Loop back to the first frame
                 self.last_update = now
-
-
-
-
-
+        # if self.is_moving is True:
+        #     self.navigation()
+        #     keys = pygame.key.get_pressed()
+        #     if keys[pygame.K_DOWN]:
+        #         frame_count = 9
+        #         for i in range(1,frame_count):
+        #             frame_path = os.path.join(self.image_folder, f"da_walk{i}.png")
+        #             frame = scale_image(pygame.image.load(frame_path), 0.5)
+        #             self.frames.append(frame)
+        #
 
 
 
@@ -86,7 +102,7 @@ run = True
 clock = pygame.time.Clock()
 
 while run:
-    clock.tick(60)
+    clock.tick(55)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -95,11 +111,10 @@ while run:
 
 
 
-    keys = pygame.key.get_pressed()
-    character.walk_down(keys[pygame.K_DOWN])
 
 
-    character.update_animation()
+    character.navigation()
+    character.animation()
     WIN.blit(GROUND, (0, 0))
     WIN.blit(MAZE, (130, 130))
 
