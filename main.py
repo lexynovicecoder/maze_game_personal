@@ -11,12 +11,12 @@ DEF_CHAR = "def_char"
 
 
 class Sprites:
-    def __init__(self,max_vel,acceleration):
-        self.max_vel = max_vel
+    def __init__(self,acceleration,run_acceleration):
         self.acceleration = acceleration
         self.x,self.y = self.START_POS
         self.velocity_y = 0  # Track vertical velocity
         self.velocity_x = 0
+        self.run_acceleration = run_acceleration
 
 
 
@@ -25,11 +25,12 @@ class Character(Sprites):
     IMG = scale_image(pygame.image.load(f"{DEF_CHAR}/da_idle1.png"),0.5)
     START_POS = (210, 200)
 
-    def __init__(self, max_vel, acceleration):
-        super().__init__(max_vel, acceleration)
+    def __init__(self, acceleration,run_acceleration):
+        super().__init__( acceleration,run_acceleration)
         self.image_folder = DEF_CHAR
         self.idle_frames = self.load_frames("da_idle", 5)
         self.walk_frames = self.load_frames("da_walk", 8)
+        self.run_frames = self.load_frames("da_run",8)
         self.current_frames = []
         self.current_frame_index = 0
         self.frame_delay = 200
@@ -59,27 +60,27 @@ class Character(Sprites):
         if keys[pygame.K_DOWN] or keys[pygame.K_RIGHT] or keys[pygame.K_LEFT]:
             self.is_moving = True
             if keys[pygame.K_DOWN]:
-                if self.velocity_y <= self.max_vel:
-                    self.velocity_y += self.acceleration
-                else:
-                    self.velocity_y = self.max_vel
-                self.y += self.velocity_y
+               self.y += self.acceleration
             if keys[pygame.K_RIGHT]:
-                if self.velocity_x <= self.max_vel:
-                    self.velocity_x += self.acceleration
-                else:
-                    self.velocity_x = self.max_vel
-                self.x += self.velocity_x
-
-
+                self.x += self.acceleration
+            if keys[pygame.K_RIGHT] and keys[pygame.K_RSHIFT]:
+                self.x += self.run_acceleration
 
         else:
             self.is_moving = False
 
     def animation(self):
         now = pygame.time.get_ticks()
+        keys = pygame.key.get_pressed()
 
-        new_frames = self.walk_frames if self.is_moving else self.idle_frames
+
+        new_frames = self.idle_frames
+        if keys[pygame.K_DOWN] or keys[pygame.K_RIGHT]:
+            new_frames = self.walk_frames
+
+        if keys[pygame.K_RIGHT] and keys[pygame.K_RSHIFT]:
+            new_frames = self.run_frames
+
 
         # Reset frame index if the animation set changes
         if self.current_frames != new_frames:
@@ -100,7 +101,7 @@ class Character(Sprites):
 
 
 
-character = Character(6,0.5)
+character = Character(2,4)
 
 run = True
 clock = pygame.time.Clock()
@@ -112,10 +113,6 @@ while run:
         if event.type == pygame.QUIT:
             run = False
             break
-
-
-
-
 
     character.navigation()
     character.animation()
